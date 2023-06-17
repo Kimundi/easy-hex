@@ -16,6 +16,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Check no features
+      run: cargo check --verbose --no-default-features
+    - name: Check only serde feature
+      run: cargo check --verbose --no-default-features --features "serde"
+    - name: Check only bytemuck feature
+      run: cargo check --verbose --no-default-features --features "bytemuck"
     - name: Build
       run: cargo build --verbose
     - name: Run tests

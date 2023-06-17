@@ -1,8 +1,11 @@
-use generic_array::{typenum::U3, GenericArray};
+use super::*;
+
+#[cfg(feature = "serde")]
 use serde::{de::DeserializeOwned, Serialize};
+#[cfg(feature = "serde")]
 use serde_derive::{Deserialize, Serialize};
 
-use super::*;
+use generic_array::{typenum::U3, GenericArray};
 
 macro_rules! make_cases {
     ($($name:ident<
@@ -31,6 +34,7 @@ macro_rules! make_cases {
 macro_rules! test_convert {
     ($T:ident, $H:ident, $hex:ident) => {{
         assert_eq!(format!("{}", $hex).to_lowercase(), "0199ff");
+        #[cfg(feature = "serde")]
         assert_eq!(to_json(&$hex).to_lowercase(), r#"{"data":"0199ff"}"#);
 
         let as_r: &[u8] = $hex.as_ref();
@@ -53,7 +57,9 @@ macro_rules! test_owned_convert {
 }
 macro_rules! test_make {
     ($T:ident, $H:ident, $hex:ident) => {{
+        #[cfg(feature = "serde")]
         let hex2 = from_json(r#"{"data":"0199ff"}"#);
+        #[cfg(feature = "serde")]
         assert_eq!($hex, hex2);
 
         let _n: $H = $H::default();
@@ -113,11 +119,13 @@ macro_rules! make_group {
     }
 }
 
+#[cfg(feature = "serde")]
 #[derive(Serialize, Deserialize)]
 struct TestJson<V> {
     data: V,
 }
 
+#[cfg(feature = "serde")]
 pub(crate) fn to_json<V>(data: &V) -> String
 where
     V: Serialize + ?Sized,
@@ -125,6 +133,7 @@ where
     serde_json::to_string(&TestJson { data }).unwrap()
 }
 
+#[cfg(feature = "serde")]
 pub(crate) fn from_json<V>(data: &str) -> V
 where
     V: DeserializeOwned,

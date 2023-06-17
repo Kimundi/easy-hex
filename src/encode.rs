@@ -1,8 +1,6 @@
 use hex::FromHexError;
 
-use crate::decode::SMALL_DES_LEN;
-
-pub(crate) const SMALL_SER_LEN: usize = SMALL_DES_LEN * 2;
+pub(crate) const SMALL_SER_LEN: usize = 128;
 
 /// deserialize a hex string to bytes, using a stack buffer for small
 /// hex strings.

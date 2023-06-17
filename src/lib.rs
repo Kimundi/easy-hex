@@ -1,7 +1,10 @@
+#[cfg(feature = "serde")]
 mod decode;
+#[cfg(feature = "serde")]
 mod deserialize;
 mod encode;
 mod fmt;
+#[cfg(feature = "serde")]
 mod serialize;
 
 #[cfg(test)]
@@ -9,6 +12,7 @@ mod tests;
 
 use std::ops::{Deref, DerefMut};
 
+#[cfg(feature = "bytemuck")]
 use bytemuck::{Pod, TransparentWrapper, Zeroable};
 
 /// Lowercase Hex of bytes `T`.
@@ -19,11 +23,10 @@ use bytemuck::{Pod, TransparentWrapper, Zeroable};
 /// The type has a transparent representation, and implements the
 /// relevant `bytemuck` traits, which allows using it even in situations
 /// where you do not have ownership of the `T`.
-#[derive(
-    Copy, Clone, TransparentWrapper, Default, PartialOrd, Ord, Hash, Eq, PartialEq, Pod, Zeroable,
-)]
+#[derive(Copy, Clone, Default, PartialOrd, Ord, Hash, Eq, PartialEq)]
+#[cfg_attr(feature = "bytemuck", derive(TransparentWrapper, Pod, Zeroable))]
+#[cfg_attr(feature = "bytemuck", transparent(T))]
 #[repr(transparent)]
-#[transparent(T)]
 pub struct Hex<T: ?Sized>(pub T);
 
 /// Uppercase Hex of bytes `T`.
@@ -34,11 +37,10 @@ pub struct Hex<T: ?Sized>(pub T);
 /// The type has a transparent representation, and implements the
 /// relevant `bytemuck` traits, which allows using it even in situations
 /// where you do not have ownership of the `T`.
-#[derive(
-    Copy, Clone, TransparentWrapper, Default, PartialOrd, Ord, Hash, Eq, PartialEq, Pod, Zeroable,
-)]
+#[derive(Copy, Clone, Default, PartialOrd, Ord, Hash, Eq, PartialEq)]
+#[cfg_attr(feature = "bytemuck", derive(TransparentWrapper, Pod, Zeroable))]
+#[cfg_attr(feature = "bytemuck", transparent(T))]
 #[repr(transparent)]
-#[transparent(T)]
 pub struct UpperHex<T: ?Sized>(pub T);
 
 macro_rules! impl_basic {
@@ -102,6 +104,7 @@ macro_rules! impl_basic {
                 Self(value)
             }
         }
+        #[cfg(feature = "bytemuck")]
         impl<'a, T> From<&'a T> for &'a $Hex<T>
         where
             T: ?Sized,
@@ -110,6 +113,7 @@ macro_rules! impl_basic {
                 TransparentWrapper::wrap_ref(value)
             }
         }
+        #[cfg(feature = "bytemuck")]
         impl<'a, T> From<&'a mut T> for &'a mut $Hex<T>
         where
             T: ?Sized,
