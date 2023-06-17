@@ -1,45 +1,33 @@
 use std::fmt;
 
-use crate::{encode::fast_serialize, Hex};
+use crate::{encode::fast_serialize, Hex, UpperHex, LOWER, UPPER};
 
-// --- formatting traits ----------------
-impl<T, const U: bool> fmt::Display for Hex<T, U>
-where
-    T: ?Sized + AsRef<[u8]>,
-{
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fast_serialize::<_, _, U>(&self.0, |s| fmt::Display::fmt(s, f))
-    }
+macro_rules! impl_fmt {
+    ($Hex:ident, $Trait:ident, $case:ident, $FmtTrait:ident) => {
+        impl<T> fmt::$Trait for $Hex<T>
+        where
+            T: AsRef<[u8]> + ?Sized,
+        {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                fast_serialize::<_, _, $case>(&self.0, |s| fmt::$FmtTrait::fmt(s, f))
+            }
+        }
+    };
 }
-impl<T, const U: bool> fmt::Debug for Hex<T, U>
-where
-    T: ?Sized + AsRef<[u8]>,
-{
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fast_serialize::<_, _, U>(&self.0, |s| fmt::Debug::fmt(s, f))
-    }
-}
-impl<T, const U: bool> fmt::LowerHex for Hex<T, U>
-where
-    T: ?Sized + AsRef<[u8]>,
-{
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fast_serialize::<_, _, false>(&self.0, |s| fmt::Display::fmt(s, f))
-    }
-}
-impl<T, const U: bool> fmt::UpperHex for Hex<T, U>
-where
-    T: ?Sized + AsRef<[u8]>,
-{
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fast_serialize::<_, _, true>(&self.0, |s| fmt::Display::fmt(s, f))
-    }
-}
+
+impl_fmt!(Hex, Display, LOWER, Display);
+impl_fmt!(Hex, Debug, LOWER, Debug);
+impl_fmt!(Hex, LowerHex, LOWER, Display);
+impl_fmt!(Hex, UpperHex, UPPER, Display);
+
+impl_fmt!(UpperHex, Display, UPPER, Display);
+impl_fmt!(UpperHex, Debug, UPPER, Debug);
+impl_fmt!(UpperHex, LowerHex, LOWER, Display);
+impl_fmt!(UpperHex, UpperHex, UPPER, Display);
 
 #[test]
 fn test_lower() {
-    // TODO: make better inference interface for this
-    let hex = Hex::<_, false>([1_u8, 0x99, 0xff]);
+    let hex = Hex([1_u8, 0x99, 0xff]);
 
     assert_eq!(format!("{}", hex), "0199ff");
     assert_eq!(format!("{:?}", hex), "\"0199ff\"");
@@ -49,8 +37,7 @@ fn test_lower() {
 
 #[test]
 fn test_upper() {
-    // TODO: make better inference interface for this
-    let hex = Hex::<_, true>([1_u8, 0x99, 0xff]);
+    let hex = UpperHex([1_u8, 0x99, 0xff]);
 
     assert_eq!(format!("{}", hex), "0199FF");
     assert_eq!(format!("{:?}", hex), "\"0199FF\"");

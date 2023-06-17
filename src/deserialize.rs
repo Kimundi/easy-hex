@@ -5,16 +5,14 @@ use serde::{
     Deserialize, Deserializer,
 };
 
-use crate::{decode::fast_deserialize, Hex};
+use crate::{decode::fast_deserialize, Hex, UpperHex};
 
-struct Vis<T, const U: bool> {
-    _marker: PhantomData<T>,
-}
-impl<'a, T, const U: bool> Visitor<'a> for Vis<T, U>
+struct Vis<T>(PhantomData<T>);
+impl<'a, T> Visitor<'a> for Vis<T>
 where
     T: for<'b> TryFrom<&'b [u8]>,
 {
-    type Value = Hex<T, U>;
+    type Value = T;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(formatter, "a hexadecimal string")
@@ -26,10 +24,11 @@ where
     {
         let value: T =
             fast_deserialize::<T>(v).map_err(|_| Error::invalid_type(Unexpected::Str(v), &self))?;
-        Ok(Hex(value))
+        Ok(value)
     }
 }
-impl<'a, T, const U: bool> Deserialize<'a> for Hex<T, U>
+
+impl<'a, T> Deserialize<'a> for Hex<T>
 where
     T: for<'b> TryFrom<&'b [u8]>,
 {
@@ -37,10 +36,19 @@ where
     where
         D: Deserializer<'a>,
     {
-        let visitor = Vis {
-            _marker: PhantomData,
-        };
-        deserializer.deserialize_str(visitor)
+        deserializer.deserialize_str(Vis(PhantomData)).map(Hex)
+    }
+}
+
+impl<'a, T> Deserialize<'a> for UpperHex<T>
+where
+    T: for<'b> TryFrom<&'b [u8]>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'a>,
+    {
+        deserializer.deserialize_str(Vis(PhantomData)).map(UpperHex)
     }
 }
 
@@ -51,23 +59,38 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_lower() {
-        // TODO: make better inference interface for this
+    fn test_from_lower() {
         let hex: Hex<_> = from_json(r#"{"data":"0199ff"}"#);
-        assert_eq!(hex, Hex::<_>([1_u8, 0x99, 0xff]));
+        assert_eq!(hex, Hex([1_u8, 0x99, 0xff]));
     }
 
     #[test]
-    fn test_upper() {
-        // TODO: make better inference interface for this
+    fn test_from_upper() {
         let hex: Hex<_> = from_json(r#"{"data":"0199FF"}"#);
-        assert_eq!(hex, Hex::<_>([1_u8, 0x99, 0xff]));
+        assert_eq!(hex, Hex([1_u8, 0x99, 0xff]));
     }
 
     #[test]
-    fn test_mixed() {
-        // TODO: make better inference interface for this
+    fn test_from_mixed() {
         let hex: Hex<_> = from_json(r#"{"data":"0199fF"}"#);
-        assert_eq!(hex, Hex::<_>([1_u8, 0x99, 0xff]));
+        assert_eq!(hex, Hex([1_u8, 0x99, 0xff]));
+    }
+
+    #[test]
+    fn test_upper_from_lower() {
+        let hex: UpperHex<_> = from_json(r#"{"data":"0199ff"}"#);
+        assert_eq!(hex, UpperHex([1_u8, 0x99, 0xff]));
+    }
+
+    #[test]
+    fn test_upper_from_upper() {
+        let hex: UpperHex<_> = from_json(r#"{"data":"0199FF"}"#);
+        assert_eq!(hex, UpperHex([1_u8, 0x99, 0xff]));
+    }
+
+    #[test]
+    fn test_upper_from_mixed() {
+        let hex: UpperHex<_> = from_json(r#"{"data":"0199fF"}"#);
+        assert_eq!(hex, UpperHex([1_u8, 0x99, 0xff]));
     }
 }

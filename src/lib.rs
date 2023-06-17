@@ -11,110 +11,119 @@ use std::ops::{Deref, DerefMut};
 
 use bytemuck::{Pod, TransparentWrapper, Zeroable};
 
-/// Simple wrapper around a sequence of bytes `T` that will be serialized,
-/// deserialized and formatted as a hexadecimal string.
+/// Lowercase Hex of bytes `T`.
 ///
-/// The default bool parameter `U` controls wether the string should output in uppercase:
-/// - `U = true`: upper-case
-/// - `U = false`: lower-case
+/// This is a simple wrapper around a sequence of bytes `T` that will be serialized,
+/// deserialized and formatted as a lowercase hexadecimal string.
 ///
-/// The type also implements all relevant `bytemuck` traits, which allows
-/// creating it from references to `T` without taking ownership.
+/// The type has a transparent representation, and implements the
+/// relevant `bytemuck` traits, which allows using it even in situations
+/// where you do not have ownership of the `T`.
 #[derive(
     Copy, Clone, TransparentWrapper, Default, PartialOrd, Ord, Hash, Eq, PartialEq, Pod, Zeroable,
 )]
 #[repr(transparent)]
 #[transparent(T)]
-pub struct Hex<T: ?Sized, const U: bool = false>(pub T);
+pub struct Hex<T: ?Sized>(pub T);
 
-// --- methods ----------------
-impl<T, const U: bool> Hex<T, U> {
-    pub fn new(v: T) -> Self {
-        Self(v)
-    }
+/// Uppercase Hex of bytes `T`.
+///
+/// This is a simple wrapper around a sequence of bytes `T` that will be serialized,
+/// deserialized and formatted as a uppercase hexadecimal string.
+///
+/// The type has a transparent representation, and implements the
+/// relevant `bytemuck` traits, which allows using it even in situations
+/// where you do not have ownership of the `T`.
+#[derive(
+    Copy, Clone, TransparentWrapper, Default, PartialOrd, Ord, Hash, Eq, PartialEq, Pod, Zeroable,
+)]
+#[repr(transparent)]
+#[transparent(T)]
+pub struct UpperHex<T: ?Sized>(pub T);
 
-    pub fn into_inner(self) -> T {
-        self.0
-    }
-}
-impl<T, const U: bool> Hex<T, U>
-where
-    T: ?Sized,
-{
-    /// Create this from a reference to T.
-    /// For more similar conversions use the bytemuck API.
-    pub fn from_ref(v: &T) -> &Self {
-        TransparentWrapper::wrap_ref(v)
-    }
+macro_rules! impl_basic {
+    ($Hex:ident) => {
+        // --- methods ----------------
+        impl<T> $Hex<T> {
+            pub fn new(v: T) -> Self {
+                Self(v)
+            }
 
-    /// Create this from a mutable reference to T.
-    /// For more similar conversions use the bytemuck API.
-    pub fn from_mut(v: &mut T) -> &mut Self {
-        TransparentWrapper::wrap_mut(v)
-    }
+            pub fn into_inner(self) -> T {
+                self.0
+            }
+        }
+
+        // --- conversion traits ----------------
+        //
+        // deref
+        impl<T> Deref for $Hex<T>
+        where
+            T: ?Sized,
+        {
+            type Target = T;
+
+            fn deref(&self) -> &Self::Target {
+                &self.0
+            }
+        }
+        impl<T> DerefMut for $Hex<T>
+        where
+            T: ?Sized,
+        {
+            fn deref_mut(&mut self) -> &mut Self::Target {
+                &mut self.0
+            }
+        }
+
+        // .as
+        impl<T, V> AsRef<V> for $Hex<T>
+        where
+            T: ?Sized + AsRef<V>,
+            V: ?Sized,
+        {
+            fn as_ref(&self) -> &V {
+                self.0.as_ref()
+            }
+        }
+        impl<T, V> AsMut<V> for $Hex<T>
+        where
+            T: ?Sized + AsMut<V>,
+            V: ?Sized,
+        {
+            fn as_mut(&mut self) -> &mut V {
+                self.0.as_mut()
+            }
+        }
+
+        // from/into
+        impl<T> From<T> for $Hex<T> {
+            fn from(value: T) -> Self {
+                Self(value)
+            }
+        }
+        impl<'a, T> From<&'a T> for &'a $Hex<T>
+        where
+            T: ?Sized,
+        {
+            fn from(value: &'a T) -> Self {
+                TransparentWrapper::wrap_ref(value)
+            }
+        }
+        impl<'a, T> From<&'a mut T> for &'a mut $Hex<T>
+        where
+            T: ?Sized,
+        {
+            fn from(value: &'a mut T) -> Self {
+                TransparentWrapper::wrap_mut(value)
+            }
+        }
+    };
 }
 
-// --- conversion traits ----------------
-//
-// deref
-impl<T, const U: bool> Deref for Hex<T, U>
-where
-    T: ?Sized,
-{
-    type Target = T;
+impl_basic!(Hex);
+impl_basic!(UpperHex);
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-impl<T, const U: bool> DerefMut for Hex<T, U>
-where
-    T: ?Sized,
-{
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
-// .as
-impl<T, V, const U: bool> AsRef<V> for Hex<T, U>
-where
-    T: ?Sized + AsRef<V>,
-    V: ?Sized,
-{
-    fn as_ref(&self) -> &V {
-        self.0.as_ref()
-    }
-}
-impl<T, V, const U: bool> AsMut<V> for Hex<T, U>
-where
-    T: ?Sized + AsMut<V>,
-    V: ?Sized,
-{
-    fn as_mut(&mut self) -> &mut V {
-        self.0.as_mut()
-    }
-}
-
-// from/into
-impl<T, const U: bool> From<T> for Hex<T, U> {
-    fn from(value: T) -> Self {
-        Self(value)
-    }
-}
-impl<'a, T, const U: bool> From<&'a T> for &'a Hex<T, U>
-where
-    T: ?Sized,
-{
-    fn from(value: &'a T) -> Self {
-        Hex::from_ref(value)
-    }
-}
-impl<'a, T, const U: bool> From<&'a mut T> for &'a mut Hex<T, U>
-where
-    T: ?Sized,
-{
-    fn from(value: &'a mut T) -> Self {
-        Hex::from_mut(value)
-    }
-}
+// Helper constants to make the usage of bools easier tor ead in thsi crate
+pub(crate) const LOWER: bool = false;
+pub(crate) const UPPER: bool = true;
