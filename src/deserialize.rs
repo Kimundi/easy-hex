@@ -43,3 +43,31 @@ where
         deserializer.deserialize_str(visitor)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::tests::from_json;
+
+    use super::*;
+
+    #[test]
+    fn test_lower() {
+        // TODO: make better inference interface for this
+        let hex: Hex<_> = from_json(r#"{"data":"0199ff"}"#);
+        assert_eq!(hex, Hex::<_>([1_u8, 0x99, 0xff]));
+    }
+
+    #[test]
+    fn test_upper() {
+        // TODO: make better inference interface for this
+        let hex: Hex<_> = from_json(r#"{"data":"0199FF"}"#);
+        assert_eq!(hex, Hex::<_>([1_u8, 0x99, 0xff]));
+    }
+
+    #[test]
+    fn test_mixed() {
+        // TODO: make better inference interface for this
+        let hex: Hex<_> = from_json(r#"{"data":"0199fF"}"#);
+        assert_eq!(hex, Hex::<_>([1_u8, 0x99, 0xff]));
+    }
+}

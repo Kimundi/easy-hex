@@ -13,3 +13,26 @@ where
         fast_serialize::<_, _, U>(&self.0, |s| serializer.serialize_str(s))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::tests::to_json;
+
+    use super::*;
+
+    #[test]
+    fn test_lower() {
+        // TODO: make better inference interface for this
+        let hex = Hex::<_, false>([1_u8, 0x99, 0xff]);
+
+        assert_eq!(to_json(hex), r#"{"data":"0199ff"}"#);
+    }
+
+    #[test]
+    fn test_upper() {
+        // TODO: make better inference interface for this
+        let hex = Hex::<_, true>([1_u8, 0x99, 0xff]);
+
+        assert_eq!(to_json(hex), r#"{"data":"0199FF"}"#);
+    }
+}
