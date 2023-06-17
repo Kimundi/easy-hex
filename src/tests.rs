@@ -74,6 +74,8 @@ macro_rules! make_group {
                 test_array<'a, T = [u8; 3], H = $Hex<[u8; 3]>>([1, 0x99, 0xff], |mut hex: H| {
                     test_owned_convert!(T, H, hex);
                     test_make!(T, H, hex);
+                    let zeroed: H = H::zeroed();
+                    assert_eq!(zeroed, $Hex([0, 0, 0]));
                 });
 
                 test_slice<'a, T = &'a [u8], H = $Hex<&'a [u8]>>(&[1, 0x99, 0xff], |mut hex: H| {
@@ -110,12 +112,6 @@ macro_rules! make_group {
         }
     }
 }
-
-// TODO: test strings as alternative?
-
-// TODO: test
-// only pod or other arrays
-// let _z ) bytemuck::zero()
 
 #[derive(Serialize, Deserialize)]
 struct TestJson<V> {
