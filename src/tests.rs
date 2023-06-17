@@ -1,3 +1,4 @@
+use generic_array::{typenum::U3, GenericArray};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_derive::{Deserialize, Serialize};
 
@@ -64,27 +65,41 @@ make_cases! {
         test_owned_convert!(T, H, hex);
         test_make!(T, H, hex);
     });
+
     test_array<'a, T = [u8; 3], H = Hex<[u8; 3]>>([1, 0x99, 0xff], |mut hex: H| {
         test_owned_convert!(T, H, hex);
         test_make!(T, H, hex);
     });
+
     test_slice<'a, T = &'a [u8], H = Hex<&'a [u8]>>(&[1, 0x99, 0xff], |mut hex: H| {
         test_owned_convert!(T, H, hex);
     });
+
     test_array_ref<'a, T = &'a [u8; 3], H = Hex<&'a [u8; 3]>>(&[1, 0x99, 0xff], |mut hex: H| {
         test_owned_convert!(T, H, hex);
     });
+
     test_vec_ref<'a, T = &'a Vec<u8>, H = Hex<&'a Vec<u8>>>(&vec![1, 0x99, 0xff], |mut hex: H| {
         test_owned_convert!(T, H, hex);
     });
+
     test_ref_vec<'a, T = &'a Vec<u8>, H = &'a Hex<Vec<u8>>>(&vec![1, 0x99, 0xff], |hex: H| {
         test_convert!(T, H, hex);
     });
+
     test_mut_vec<'a, T = &'a mut Vec<u8>, H = &'a mut Hex<Vec<u8>>>(&mut vec![1, 0x99, 0xff], |hex: H| {
         test_convert!(T, H, hex);
     });
+
     test_ref_slice<'a, T = &'a [u8], H = &'a Hex<[u8]>>(&[1, 0x99, 0xff], |hex: H| {
         test_convert!(T, H, hex);
+    });
+
+    test_gen_array<'a, T = GenericArray<u8, U3>, H = Hex<GenericArray<u8, U3>>>([1, 0x99, 0xff].into(), |mut hex: H| {
+        test_owned_convert!(T, H, hex);
+        // TODO: After the GA 1.0 release we can probably provide a PR
+        // to make this work?
+        // test_make!(T, H, hex);
     });
 }
 
