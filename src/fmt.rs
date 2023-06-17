@@ -5,7 +5,7 @@ use crate::{encode::fast_serialize, Hex};
 // --- formatting traits ----------------
 impl<T, const U: bool> fmt::Display for Hex<T, U>
 where
-    T: AsRef<[u8]>,
+    T: ?Sized + AsRef<[u8]>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fast_serialize::<_, _, U>(&self.0, |s| fmt::Display::fmt(s, f))
@@ -13,7 +13,7 @@ where
 }
 impl<T, const U: bool> fmt::Debug for Hex<T, U>
 where
-    T: AsRef<[u8]>,
+    T: ?Sized + AsRef<[u8]>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fast_serialize::<_, _, U>(&self.0, |s| fmt::Debug::fmt(s, f))
@@ -21,7 +21,7 @@ where
 }
 impl<T, const U: bool> fmt::LowerHex for Hex<T, U>
 where
-    T: AsRef<[u8]>,
+    T: ?Sized + AsRef<[u8]>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fast_serialize::<_, _, false>(&self.0, |s| fmt::Display::fmt(s, f))
@@ -29,7 +29,7 @@ where
 }
 impl<T, const U: bool> fmt::UpperHex for Hex<T, U>
 where
-    T: AsRef<[u8]>,
+    T: ?Sized + AsRef<[u8]>,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fast_serialize::<_, _, true>(&self.0, |s| fmt::Display::fmt(s, f))

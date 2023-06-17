@@ -30,7 +30,16 @@ macro_rules! make_cases {
 macro_rules! test_convert {
     ($T:ident, $H:ident, $hex:ident) => {{
         assert_eq!(format!("{}", $hex), "0199ff");
-        assert_eq!(to_json($hex.clone()), r#"{"data":"0199ff"}"#);
+        assert_eq!(to_json(&$hex), r#"{"data":"0199ff"}"#);
+
+        let as_r: &[u8] = $hex.as_ref();
+        assert_eq!(as_r, [1, 0x99, 0xff]);
+    }};
+}
+
+macro_rules! test_owned_convert {
+    ($T:ident, $H:ident, $hex:ident) => {{
+        test_convert!($T, $H, $hex);
 
         let r: &$T = &$hex;
         let _rh: &$H = $H::from_ref(r);
@@ -39,9 +48,6 @@ macro_rules! test_convert {
         let _mh: &mut $H = $H::from_mut(m);
 
         let _i: $T = $hex.clone().into_inner();
-
-        let as_r: &[u8] = $hex.as_ref();
-        assert_eq!(as_r, [1, 0x99, 0xff]);
     }};
 }
 macro_rules! test_make {
@@ -55,42 +61,47 @@ macro_rules! test_make {
 
 make_cases! {
     test_vec<'a, T = Vec<u8>, H = Hex<Vec<u8>>>(vec![1, 0x99, 0xff], |mut hex: H| {
-        test_convert!(T, H, hex);
+        test_owned_convert!(T, H, hex);
         test_make!(T, H, hex);
     });
     test_array<'a, T = [u8; 3], H = Hex<[u8; 3]>>([1, 0x99, 0xff], |mut hex: H| {
-        test_convert!(T, H, hex);
+        test_owned_convert!(T, H, hex);
         test_make!(T, H, hex);
     });
     test_slice<'a, T = &'a [u8], H = Hex<&'a [u8]>>(&[1, 0x99, 0xff], |mut hex: H| {
-        test_convert!(T, H, hex);
+        test_owned_convert!(T, H, hex);
     });
     test_array_ref<'a, T = &'a [u8; 3], H = Hex<&'a [u8; 3]>>(&[1, 0x99, 0xff], |mut hex: H| {
-        test_convert!(T, H, hex);
+        test_owned_convert!(T, H, hex);
     });
     test_vec_ref<'a, T = &'a Vec<u8>, H = Hex<&'a Vec<u8>>>(&vec![1, 0x99, 0xff], |mut hex: H| {
+        test_owned_convert!(T, H, hex);
+    });
+    test_ref_vec<'a, T = &'a Vec<u8>, H = &'a Hex<Vec<u8>>>(&vec![1, 0x99, 0xff], |hex: H| {
+        test_convert!(T, H, hex);
+    });
+    test_mut_vec<'a, T = &'a mut Vec<u8>, H = &'a mut Hex<Vec<u8>>>(&mut vec![1, 0x99, 0xff], |hex: H| {
+        test_convert!(T, H, hex);
+    });
+    test_ref_slice<'a, T = &'a [u8], H = &'a Hex<[u8]>>(&[1, 0x99, 0xff], |hex: H| {
         test_convert!(T, H, hex);
     });
 }
 
+// TODO: test strings as alternative?
+
 // TODO: test
 // only pod or other arrays
 // let _z ) bytemuck::zero()
-
-/*
-TODO: write tests for all cases
-- bare slice unsized?
-
-*/
 
 #[derive(Serialize, Deserialize)]
 struct TestJson<V> {
     data: V,
 }
 
-pub(crate) fn to_json<V>(data: V) -> String
+pub(crate) fn to_json<V>(data: &V) -> String
 where
-    V: Serialize,
+    V: Serialize + ?Sized,
 {
     serde_json::to_string(&TestJson { data }).unwrap()
 }

@@ -6,10 +6,10 @@ pub(crate) const SMALL_SER_LEN: usize = SMALL_DES_LEN * 2;
 
 /// deserialize a hex string to bytes, using a stack buffer for small
 /// hex strings.
-pub(crate) fn fast_serialize<T: AsRef<[u8]>, V, const U: bool>(
-    v: &T,
-    out: impl FnOnce(&str) -> V,
-) -> V {
+pub(crate) fn fast_serialize<T, V, const U: bool>(v: &T, out: impl FnOnce(&str) -> V) -> V
+where
+    T: ?Sized + AsRef<[u8]>,
+{
     let v = v.as_ref();
 
     let str_len = v.len() * 2;

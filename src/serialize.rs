@@ -4,7 +4,7 @@ use crate::{encode::fast_serialize, Hex};
 
 impl<T, const U: bool> Serialize for Hex<T, U>
 where
-    T: AsRef<[u8]>,
+    T: AsRef<[u8]> + ?Sized,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -25,7 +25,7 @@ mod tests {
         // TODO: make better inference interface for this
         let hex = Hex::<_, false>([1_u8, 0x99, 0xff]);
 
-        assert_eq!(to_json(hex), r#"{"data":"0199ff"}"#);
+        assert_eq!(to_json(&hex), r#"{"data":"0199ff"}"#);
     }
 
     #[test]
@@ -33,6 +33,6 @@ mod tests {
         // TODO: make better inference interface for this
         let hex = Hex::<_, true>([1_u8, 0x99, 0xff]);
 
-        assert_eq!(to_json(hex), r#"{"data":"0199FF"}"#);
+        assert_eq!(to_json(&hex), r#"{"data":"0199FF"}"#);
     }
 }

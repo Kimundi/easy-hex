@@ -25,7 +25,7 @@ use bytemuck::{Pod, TransparentWrapper, Zeroable};
 )]
 #[repr(transparent)]
 #[transparent(T)]
-pub struct Hex<T, const U: bool = false>(pub T);
+pub struct Hex<T: ?Sized, const U: bool = false>(pub T);
 
 // --- methods ----------------
 impl<T, const U: bool> Hex<T, U> {
@@ -33,6 +33,14 @@ impl<T, const U: bool> Hex<T, U> {
         Self(v)
     }
 
+    pub fn into_inner(self) -> T {
+        self.0
+    }
+}
+impl<T, const U: bool> Hex<T, U>
+where
+    T: ?Sized,
+{
     /// Create this from a reference to T.
     /// For more similar conversions use the bytemuck API.
     pub fn from_ref(v: &T) -> &Self {
@@ -44,40 +52,44 @@ impl<T, const U: bool> Hex<T, U> {
     pub fn from_mut(v: &mut T) -> &mut Self {
         TransparentWrapper::wrap_mut(v)
     }
-
-    pub fn into_inner(self) -> T {
-        self.0
-    }
 }
 
 // --- conversion traits ----------------
 //
 // deref
-impl<T, const U: bool> Deref for Hex<T, U> {
+impl<T, const U: bool> Deref for Hex<T, U>
+where
+    T: ?Sized,
+{
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
-impl<T, const U: bool> DerefMut for Hex<T, U> {
+impl<T, const U: bool> DerefMut for Hex<T, U>
+where
+    T: ?Sized,
+{
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 
 // .as
-impl<T, V: ?Sized, const U: bool> AsRef<V> for Hex<T, U>
+impl<T, V, const U: bool> AsRef<V> for Hex<T, U>
 where
-    T: AsRef<V>,
+    T: ?Sized + AsRef<V>,
+    V: ?Sized,
 {
     fn as_ref(&self) -> &V {
         self.0.as_ref()
     }
 }
-impl<T, V: ?Sized, const U: bool> AsMut<V> for Hex<T, U>
+impl<T, V, const U: bool> AsMut<V> for Hex<T, U>
 where
-    T: AsMut<V>,
+    T: ?Sized + AsMut<V>,
+    V: ?Sized,
 {
     fn as_mut(&mut self) -> &mut V {
         self.0.as_mut()
@@ -88,5 +100,21 @@ where
 impl<T, const U: bool> From<T> for Hex<T, U> {
     fn from(value: T) -> Self {
         Self(value)
+    }
+}
+impl<'a, T, const U: bool> From<&'a T> for &'a Hex<T, U>
+where
+    T: ?Sized,
+{
+    fn from(value: &'a T) -> Self {
+        Hex::from_ref(value)
+    }
+}
+impl<'a, T, const U: bool> From<&'a mut T> for &'a mut Hex<T, U>
+where
+    T: ?Sized,
+{
+    fn from(value: &'a mut T) -> Self {
+        Hex::from_mut(value)
     }
 }
