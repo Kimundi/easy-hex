@@ -1,7 +1,21 @@
-TODO: make serde and bytemuck optionalf eatures
-TODO: write tests for all cases
-- array
-- vec
-- ref to slice
-- ref to array
-- ref to vec
+# Easy Hex
+
+An easy to use Hex string formatting wrapper.
+
+## Features
+
+- serde
+- formatting
+- flexible, everything that has TryFrom or AsRef
+- transparent
+
+# TODO
+
+- list all features
+
+# Example
+
+```
+use easy_hex::Hex;
+
+```

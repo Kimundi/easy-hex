@@ -2,6 +2,14 @@
 name = "easy-hex"
 version = "0.1.0"
 edition = "2021"
+description = "An easy to use Hex string formatting wrapper"
+repository = "https://github.com/Kimundi/easy-hex"
+license = "MIT OR Apache-2.0"
+keywords = ["hex", "serde", "formatting", "bytemuck"]
+categories = ["algorithms", "encoding"]
+
+# TODO categories
+# no-std::no-alloc
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
