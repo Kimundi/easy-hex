@@ -33,8 +33,7 @@ where
     S: Serializer,
     T: AsRef<[u8]>,
 {
-    let value: &Hex<T> = value.into();
-    Serialize::serialize(value, serializer)
+    fast_serialize::<_, _, LOWER>(value, |s| serializer.serialize_str(s))
 }
 
 /// Serialize function for a hex string. Will serialize `T` as upper case
@@ -44,8 +43,7 @@ where
     S: Serializer,
     T: AsRef<[u8]>,
 {
-    let value: &UpperHex<T> = value.into();
-    Serialize::serialize(value, serializer)
+    fast_serialize::<_, _, UPPER>(value, |s| serializer.serialize_str(s))
 }
 
 #[cfg(test)]
