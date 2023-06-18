@@ -3,6 +3,7 @@ use hex::FromHexError;
 use crate::{LOWER, UPPER};
 
 /// Encodes a sequence of bytes to a lowercase hex string.
+///
 /// The resulting string is passed to the closure.
 pub fn encode<T, V>(v: &T, out: impl FnOnce(&str) -> V) -> V
 where
@@ -12,6 +13,7 @@ where
 }
 
 /// Encodes a sequence of bytes to a uppercase hex string.
+///
 /// The resulting string is passed to the closure.
 pub fn encode_upper<T, V>(v: &T, out: impl FnOnce(&str) -> V) -> V
 where

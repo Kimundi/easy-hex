@@ -200,6 +200,7 @@ pub mod serde_upper {
 }
 
 pub use decode::decode;
+pub use decode::decode_into;
 pub use encode::encode;
 pub use encode::encode_upper;
 pub use hex::FromHexError;

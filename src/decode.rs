@@ -4,13 +4,7 @@ use crate::encode::SMALL_SER_LEN;
 
 pub(crate) const SMALL_DES_LEN: usize = SMALL_SER_LEN / 2;
 
-/// Decodes a hex string to a sequence of bytes.
-///
-/// This accepts both lower and upper case strings.
-pub fn decode<T>(v: &str) -> Result<T, FromHexError>
-where
-    T: for<'a> TryFrom<&'a [u8]>,
-{
+fn fast_deserialize<V>(v: &str, out: impl FnOnce(&[u8]) -> V) -> Result<V, FromHexError> {
     if v.len() % 2 != 0 {
         return Err(FromHexError::OddLength);
     }
@@ -28,5 +22,32 @@ where
     }
     hex::decode_to_slice(v, buf)?;
 
-    T::try_from(buf).map_err(|_| FromHexError::InvalidStringLength)
+    Ok(out(buf))
+}
+
+pub(crate) fn fast_deserialize_into<T>(v: &str) -> Result<T, FromHexError>
+where
+    T: for<'a> TryFrom<&'a [u8]>,
+{
+    fast_deserialize(v, |buf| {
+        T::try_from(buf).map_err(|_| FromHexError::InvalidStringLength)
+    })?
+}
+
+/// Decodes a hex string to a byte container.
+///
+/// This accepts both lower and upper case strings.
+pub fn decode_into<T>(v: &str) -> Result<T, FromHexError>
+where
+    T: for<'a> TryFrom<&'a [u8]>,
+{
+    fast_deserialize_into(v)
+}
+
+/// Decodes a hex string to a byte slice.
+///
+/// This accepts both lower and upper case strings.
+/// The resulting byte slice is passed to the closure.
+pub fn decode<V>(v: &str, out: impl FnOnce(&[u8]) -> V) -> Result<V, FromHexError> {
+    fast_deserialize(v, out)
 }
