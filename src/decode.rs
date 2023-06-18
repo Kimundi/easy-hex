@@ -4,9 +4,13 @@ use crate::encode::SMALL_SER_LEN;
 
 pub(crate) const SMALL_DES_LEN: usize = SMALL_SER_LEN / 2;
 
-/// deserialize a hex string to bytes, using a stack buffer for small
-/// hex strings.
-pub(crate) fn fast_deserialize<T: for<'a> TryFrom<&'a [u8]>>(v: &str) -> Result<T, FromHexError> {
+/// Decodes a hex string to a sequence of bytes.
+///
+/// This accepts both lower and upper case strings.
+pub fn decode<T>(v: &str) -> Result<T, FromHexError>
+where
+    T: for<'a> TryFrom<&'a [u8]>,
+{
     if v.len() % 2 != 0 {
         return Err(FromHexError::OddLength);
     }

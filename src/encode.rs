@@ -1,9 +1,27 @@
 use hex::FromHexError;
 
+use crate::{LOWER, UPPER};
+
+/// Encodes a sequence of bytes to a lowercase hex string.
+/// The resulting string is passed to the closure.
+pub fn encode<T, V>(v: &T, out: impl FnOnce(&str) -> V) -> V
+where
+    T: ?Sized + AsRef<[u8]>,
+{
+    fast_serialize::<_, _, LOWER>(v, out)
+}
+
+/// Encodes a sequence of bytes to a uppercase hex string.
+/// The resulting string is passed to the closure.
+pub fn encode_upper<T, V>(v: &T, out: impl FnOnce(&str) -> V) -> V
+where
+    T: ?Sized + AsRef<[u8]>,
+{
+    fast_serialize::<_, _, UPPER>(v, out)
+}
+
 pub(crate) const SMALL_SER_LEN: usize = 128;
 
-/// deserialize a hex string to bytes, using a stack buffer for small
-/// hex strings.
 pub(crate) fn fast_serialize<T, V, const U: bool>(v: &T, out: impl FnOnce(&str) -> V) -> V
 where
     T: ?Sized + AsRef<[u8]>,

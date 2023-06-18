@@ -17,7 +17,7 @@ use std::ops::{Deref, DerefMut};
 #[cfg(feature = "bytemuck")]
 use bytemuck::{Pod, TransparentWrapper, Zeroable};
 
-/// Lowercase Hex of bytes `T`.
+/// Lowercase hex serialization of bytes `T`.
 ///
 /// This is a simple wrapper around a sequence of bytes `T` that will be serialized,
 /// deserialized and formatted as a lowercase hexadecimal string.
@@ -31,7 +31,7 @@ use bytemuck::{Pod, TransparentWrapper, Zeroable};
 #[repr(transparent)]
 pub struct Hex<T: ?Sized>(pub T);
 
-/// Uppercase Hex of bytes `T`.
+/// Uppercase hex serialization of bytes `T`.
 ///
 /// This is a simple wrapper around a sequence of bytes `T` that will be serialized,
 /// deserialized and formatted as a uppercase hexadecimal string.
@@ -127,13 +127,17 @@ pub(crate) const UPPER: bool = true;
 /// sequence types with `Hex` and `UpperHex`. All methods this provides
 /// are also available via `From` implementations for `Hex` and `UpperHex`.
 pub trait HexExt {
-    fn into_hex(self) -> Hex<Self>;
+    fn into_hex(self) -> Hex<Self>
+    where
+        Self: Sized;
     #[cfg(feature = "bytemuck")]
     fn as_hex(&self) -> &Hex<Self>;
     #[cfg(feature = "bytemuck")]
     fn as_hex_mut(&mut self) -> &mut Hex<Self>;
 
-    fn into_upper_hex(self) -> UpperHex<Self>;
+    fn into_upper_hex(self) -> UpperHex<Self>
+    where
+        Self: Sized;
     #[cfg(feature = "bytemuck")]
     fn as_upper_hex(&self) -> &UpperHex<Self>;
     #[cfg(feature = "bytemuck")]
@@ -142,9 +146,12 @@ pub trait HexExt {
 
 impl<T> HexExt for T
 where
-    T: AsRef<[u8]> + for<'a> TryFrom<&'a [u8]>,
+    T: ?Sized,
 {
-    fn into_hex(self) -> Hex<Self> {
+    fn into_hex(self) -> Hex<Self>
+    where
+        Self: Sized,
+    {
         self.into()
     }
 
@@ -158,7 +165,10 @@ where
         self.into()
     }
 
-    fn into_upper_hex(self) -> UpperHex<Self> {
+    fn into_upper_hex(self) -> UpperHex<Self>
+    where
+        Self: Sized,
+    {
         self.into()
     }
 
@@ -188,3 +198,8 @@ pub mod serde_upper {
     pub use crate::deserialize::deserialize;
     pub use crate::serialize::serialize_upper as serialize;
 }
+
+pub use decode::decode;
+pub use encode::encode;
+pub use encode::encode_upper;
+pub use hex::FromHexError;

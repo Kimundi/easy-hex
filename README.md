@@ -31,7 +31,7 @@ assert_eq!(json, r#""0110ff""#);
 
 ## Supported Types
 
-Both `Hex<T>` and `UpperHex<T>` aim to support as many types as possible:
+The API of this crate aims to support as many types as possible:
 
 - Serialization is supported for all `T: AsRef<[u8]>`.
 - Deserialization is supported for all `T: TryFrom<&[u8]>`.
@@ -84,13 +84,11 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize)]
 struct Example {
-    // Fixed size data
+    // With wrapper
     array: Hex<[u8; 16]>,
-    // Dynamic sized data
-    vec: Hex<Vec<u8>>,
     // Without wrapper
     #[serde(with = "easy_hex::serde")]
-    boxed: Box<[u8]>
+    vec: Vec<u8>
 }
 
 ```

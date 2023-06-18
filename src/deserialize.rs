@@ -5,7 +5,7 @@ use serde::{
     Deserialize, Deserializer,
 };
 
-use crate::{decode::fast_deserialize, Hex, UpperHex};
+use crate::{decode::decode, Hex, UpperHex};
 
 struct Vis<T>(PhantomData<T>);
 impl<'a, T> Visitor<'a> for Vis<T>
@@ -23,7 +23,7 @@ where
         E: Error,
     {
         let value: T =
-            fast_deserialize::<T>(v).map_err(|_| Error::invalid_type(Unexpected::Str(v), &self))?;
+            decode::<T>(v).map_err(|_| Error::invalid_type(Unexpected::Str(v), &self))?;
         Ok(value)
     }
 }
