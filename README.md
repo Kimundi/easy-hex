@@ -7,7 +7,8 @@ container of bytes as a hexadecimal string. This includes vectors, arrays,
 slices, etc. Example:
 
 ```rust
-# use easy_hex::Hex;
+use easy_hex::Hex;
+
 let hex = Hex([1, 16, 255]);
 let json = serde_json::to_string(&hex).unwrap();
 assert_eq!(json, r#""0110ff""#);
@@ -51,7 +52,8 @@ Note the explicit support of dynamically sized types like `[u8]`.
 They are possible because of the `transparent` representation:
 
 ```rust
-# use easy_hex::Hex;
+use easy_hex::Hex;
+
 let data: &[u8] = &[1, 2, 3];
 let hex: &Hex<[u8]> = data.into();
 ```
@@ -79,8 +81,7 @@ Serializing byte vectors as hex strings:
 
 ```rust
 use easy_hex::Hex;
-use serde::{Serialize, Deserialize};
-# use serde_derive::{Serialize, Deserialize};
+use serde_derive::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize)]
 struct Example {
