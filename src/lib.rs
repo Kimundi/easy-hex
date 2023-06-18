@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 #[cfg(feature = "serde")]
 mod decode;
 #[cfg(feature = "serde")]
@@ -45,17 +47,6 @@ pub struct UpperHex<T: ?Sized>(pub T);
 
 macro_rules! impl_basic {
     ($Hex:ident) => {
-        // --- methods ----------------
-        impl<T> $Hex<T> {
-            pub fn new(v: T) -> Self {
-                Self(v)
-            }
-
-            pub fn into_inner(self) -> T {
-                self.0
-            }
-        }
-
         // --- conversion traits ----------------
         //
         // deref
@@ -131,3 +122,69 @@ impl_basic!(UpperHex);
 // Helper constants to make the usage of bools easier tor ead in thsi crate
 pub(crate) const LOWER: bool = false;
 pub(crate) const UPPER: bool = true;
+
+/// Extension trait to make it more convenient to wrap byte
+/// sequence types with `Hex` and `UpperHex`. All methods this provides
+/// are also available via `From` implementations for `Hex` and `UpperHex`.
+pub trait HexExt {
+    fn into_hex(self) -> Hex<Self>;
+    #[cfg(feature = "bytemuck")]
+    fn as_hex(&self) -> &Hex<Self>;
+    #[cfg(feature = "bytemuck")]
+    fn as_hex_mut(&mut self) -> &mut Hex<Self>;
+
+    fn into_upper_hex(self) -> UpperHex<Self>;
+    #[cfg(feature = "bytemuck")]
+    fn as_upper_hex(&self) -> &UpperHex<Self>;
+    #[cfg(feature = "bytemuck")]
+    fn as_upper_hex_mut(&mut self) -> &mut UpperHex<Self>;
+}
+
+impl<T> HexExt for T
+where
+    T: AsRef<[u8]> + for<'a> TryFrom<&'a [u8]>,
+{
+    fn into_hex(self) -> Hex<Self> {
+        self.into()
+    }
+
+    #[cfg(feature = "bytemuck")]
+    fn as_hex(&self) -> &Hex<Self> {
+        self.into()
+    }
+
+    #[cfg(feature = "bytemuck")]
+    fn as_hex_mut(&mut self) -> &mut Hex<Self> {
+        self.into()
+    }
+
+    fn into_upper_hex(self) -> UpperHex<Self> {
+        self.into()
+    }
+
+    #[cfg(feature = "bytemuck")]
+    fn as_upper_hex(&self) -> &UpperHex<Self> {
+        self.into()
+    }
+
+    #[cfg(feature = "bytemuck")]
+    fn as_upper_hex_mut(&mut self) -> &mut UpperHex<Self> {
+        self.into()
+    }
+}
+
+/// Module that contains the serialization and deserialization
+/// functions for `Hex`. Can be used with `#[serde(with = "...")]`.
+#[cfg(feature = "serde")]
+pub mod serde {
+    pub use crate::deserialize::deserialize;
+    pub use crate::serialize::serialize;
+}
+
+/// Module that contains the serialization and deserialization
+/// functions for `UpperHex`. Can be used with `#[serde(with = "...")]`.
+#[cfg(feature = "serde")]
+pub mod serde_upper {
+    pub use crate::deserialize::deserialize;
+    pub use crate::serialize::serialize_upper as serialize;
+}

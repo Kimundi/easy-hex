@@ -52,11 +52,31 @@ where
     }
 }
 
+/// Deserialize function for a hex string. Can handle the output of
+/// either `Hex` or `UpperHex`.
+pub fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
+where
+    D: Deserializer<'de>,
+    T: for<'a> TryFrom<&'a [u8]>,
+{
+    Hex::<T>::deserialize(deserializer).map(|v| v.0)
+}
+
 #[cfg(test)]
 mod tests {
+    use serde_derive::Deserialize;
+
     use crate::tests::from_json;
 
     use super::*;
+
+    #[derive(Deserialize)]
+    struct Test {
+        _a: Hex<Vec<u8>>,
+        _b: UpperHex<Vec<u8>>,
+        #[serde(deserialize_with = "deserialize")]
+        _c: Vec<u8>,
+    }
 
     #[test]
     fn test_from_lower() {

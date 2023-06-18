@@ -1,7 +1,7 @@
 use super::*;
 
 #[cfg(feature = "serde")]
-use serde::{de::DeserializeOwned, Serialize};
+use ::serde::{de::DeserializeOwned, Serialize};
 #[cfg(feature = "serde")]
 use serde_derive::{Deserialize, Serialize};
 
@@ -52,7 +52,7 @@ macro_rules! test_owned_convert {
         let m: &mut $T = &mut $hex;
         let _mh: &mut $H = m.into();
 
-        let _i: $T = $hex.clone().into_inner();
+        let _i: $T = $hex.clone().0;
     }};
 }
 macro_rules! test_make {
@@ -73,6 +73,11 @@ macro_rules! make_group {
 
             make_cases! {
                 test_vec<'a, T = Vec<u8>, H = $Hex<Vec<u8>>>(vec![1, 0x99, 0xff], |mut hex: H| {
+                    test_owned_convert!(T, H, hex);
+                    test_make!(T, H, hex);
+                });
+
+                test_boxed_slice<'a, T = Box<[u8]>, H = $Hex<Box<[u8]>>>(vec![1, 0x99, 0xff].into_boxed_slice(), |mut hex: H| {
                     test_owned_convert!(T, H, hex);
                     test_make!(T, H, hex);
                 });
