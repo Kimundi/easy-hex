@@ -9,6 +9,7 @@ mod fmt;
 #[cfg(feature = "serde")]
 mod serialize;
 
+mod from_str;
 #[cfg(test)]
 mod tests;
 
