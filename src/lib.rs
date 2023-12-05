@@ -1,6 +1,5 @@
 #![doc = include_str!("../README.md")]
 
-#[cfg(feature = "serde")]
 mod decode;
 #[cfg(feature = "serde")]
 mod deserialize;
