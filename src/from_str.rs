@@ -4,7 +4,7 @@ use crate::{decode_into, FromHexError, Hex, UpperHex};
 
 impl<T> FromStr for Hex<T>
 where
-    T: for<'a> From<&'a [u8]>,
+    T: for<'a> TryFrom<&'a [u8]>,
 {
     type Err = FromHexError;
 
@@ -15,7 +15,7 @@ where
 
 impl<T> FromStr for UpperHex<T>
 where
-    T: for<'a> From<&'a [u8]>,
+    T: for<'a> TryFrom<&'a [u8]>,
 {
     type Err = FromHexError;
 
