@@ -1,14 +1,16 @@
 #![doc = include_str!("../README.md")]
 
 mod decode;
+mod encode;
+
+mod fmt;
+mod from_str;
+
 #[cfg(feature = "serde")]
 mod deserialize;
-mod encode;
-mod fmt;
 #[cfg(feature = "serde")]
 mod serialize;
 
-mod from_str;
 #[cfg(test)]
 mod tests;
 
